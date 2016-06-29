@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>粤语歌速查</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      color: #555;
+      font-size: 16px;
+      font-family: Helvetica Neue,Helvetica,PingFang SC,Hiragino Sans GB,Microsoft YaHei,SimSun,sans-serif;
+    }
+    .song {
+      padding: 13px;
+      position: relative;
+    }
+    .song > textarea {
+      width: 100%;
+      min-height: 200px;
+      border-radius: 4px;
+      padding: 8px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    #btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 5px;
+      cursor: pointer;
+      opacity: 0.6;
+      transition: top 0.3s ease;
+    }
+    #btn.col {
+      top: 5px;
+      opacity: 0.3;
+    }
+    #btn:hover {
+      opacity: 0.9;
+    }
+    #content > .line {
+      font-size: 0;
+      text-align: center;
+    }
+    #content > .line:not(:last-child) {
+      margin-bottom: 10px;
+      border-bottom: 1px solid rgba(150, 150, 150, 0.2);
+      padding-bottom: 5px;
+    }
+    #content > .line:last-child {
+      margin-bottom: 30px;
+    }
+    .w {
+      display: inline-block;
+      font-size: 16px;
+    }
+    .w:not(:last-child) {
+      margin-right: 8px;
+    }
+    .hz {
+      color: #404040;
+    }
+    .py {
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+  </style>
+</head>
+<body>
+<div class="song">
+  <textarea id="txt"></textarea>
+  <button id="btn">查询</button>
+</div>
+<div id="content">
+
+</div>
+<script>
+  function $(id) {
+    return document.getElementById(id);
+  }
+  function CE(tag, className) {
+    var $ele = document.createElement(tag);
+    className && ($ele.className = className);
+    return $ele;
+  }
+  (function () {
+    var jtDict = {};
+    var ftDict = {};
+    var collapse = false;
+    function load() {
+      var http = new XMLHttpRequest();
+      http.open('GET', 'dict.txt');
+      http.onreadystatechange = function () {
+        if (http.readyState === 4 && http.status === 200) {
+          var res = http.responseText;
+          res.split('\n').forEach(function (w) {
+            var cjt = w[0];
+            var cft = w[1];
+            var py = w.substring(2);
+            jtDict[cjt] = py;
+            ftDict[cft] = py;
+          });
+          init();
+        }
+      };
+      http.send();
+    }
+    function init() {
+      $('btn').addEventListener('click', search);
+      $('txt').addEventListener('keypress', function (evt) {
+        if (evt.charCode === 13 && (evt.ctrlKey || evt.commandKey)) {
+          search();
+        }
+      });
+    }
+    function search() {
+      var $btn = $('btn');
+      var $txt = $('txt');
+      var $cnt = $('content');
+      if (collapse) {
+        $txt.style.display = 'block';
+        $btn.className = '';
+        $btn.textContent = '查询';
+        collapse = false;
+        return;
+      }
+      var txt = $txt.value.trim();
+      if (txt === '') {
+        return;
+      }
+      $cnt.innerHTML = '';
+      $txt.style.display = 'none';
+      $btn.className = 'col';
+      $btn.textContent = '展开';
+      collapse = true;
+      txt.split('\n').forEach(function (line) {
+        line = line.trim();
+        if (!line) {
+          return;
+        }
+        var $l = CE('div', 'line');
+        for(var i = 0; i < line.length; i++) {
+          var $w = CE('div', 'w');
+          var $py = CE('div', 'py');
+          var $hz = CE('div', 'hz');
+          var c = line[i];
+          $hz.textContent = c;
+          $py.textContent = jtDict[c] || ftDict[c] || ' ';
+          $w.appendChild($py);
+          $w.appendChild($hz);
+          $l.appendChild($w);
+        }
+        $cnt.appendChild($l);
+      });
+    }
+    document.addEventListener('DOMContentLoaded', load);
+  })();
+</script>
+</body>
+</html>

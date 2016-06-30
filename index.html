@@ -151,13 +151,39 @@
           var $hz = CE('div', 'hz');
           var c = line[i];
           $hz.textContent = c;
-          $py.textContent = jtDict[c] || ftDict[c] || ' ';
+          var ps = (jtDict[c] || ftDict[c] || ' ').split(',').filter(function (py) {
+            return py && py.trim();
+          }).map(function (py) {
+            var $s = CE('span');
+            $s.addEventListener('click', handleClick);
+            $s.textContent = py;
+            return $s;
+          });
+          ps.forEach(function ($s, idx) {
+            if (idx < ps.length - 1) {
+              $s.textContent = $s.textContent + ',';
+            }
+            $py.appendChild($s);
+          });
           $w.appendChild($py);
           $w.appendChild($hz);
           $l.appendChild($w);
         }
         $cnt.appendChild($l);
       });
+    }
+
+    function handleClick(evt) {
+      var $e = evt.target;
+      var $p = $e.parentElement;
+      if ($p.children.length <= 1) {
+        return;
+      }
+      $p.removeChild($e);
+      $e = $p.children[$p.children.length - 1];
+      if (/,$/.test($e.textContent)) {
+        $e.textContent = $e.textContent.replace(/,$/, '');
+      }
     }
     document.addEventListener('DOMContentLoaded', load);
   })();
